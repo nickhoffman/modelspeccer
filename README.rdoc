@@ -140,8 +140,7 @@ Run the Person model spec again, and everything passes with flying colours:
   $ script/spec --format specdoc spec/models/person_spec.rb
 
   Person factory
-  - should build a valid Person
-  - should create a valid Person
+  <..snip..>
   
   Person attribute 'name' should be valid
   - if it is 4 characters
@@ -156,7 +155,7 @@ Run the Person model spec again, and everything passes with flying colours:
   6 examples, 0 failures
 
 The specs we currently have for the Person model 'name' attribute are pretty bare. Let's add some more. We want to restrict which characters are allowed in a name. In spec/models/person_spec.rb , replace the 'valid_names' and 'invalid_names' arrays with:
-  valid_names = [ # {{{
+  valid_names = [
     'if it is 4 characters',            'Abcd',
     'if it is 5 characters',            'Abcde',
     'if it is 127 characters',          'Almost at maximum lengthxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
@@ -164,8 +163,8 @@ The specs we currently have for the Person model 'name' attribute are pretty bar
     'if it starts with a letter',       'Some Name',
     "if it has a '-' in the middle",    'With A-Dash',
     "if it has a ' in the middle",      "Some N'ame",
-    ] # }}}
-  invalid_names = [ # {{{
+    ]
+  invalid_names = [
     'if it is nil',                 nil,
     "if it is ''",                  '',
     'if it is only 1 character',    'x',
@@ -176,7 +175,7 @@ The specs we currently have for the Person model 'name' attribute are pretty bar
     "if it starts with a '-'",      "-Not allowed",
     "if it starts with a '*'",      "*Not allowed",
     'if it has a newline',          "Newlines\nnot allowed",
-    ] # }}}
+    ]
 
 Run the specs again, and watch them fail:
   $ script/spec --format specdoc spec/models/person_spec.rb
@@ -184,14 +183,13 @@ Run the specs again, and watch them fail:
 Now add the validation to the Person model in app/models/person.rb :
     validates_format_of :name,
       :with       => /\A['a-z][-' a-z]+\Z/i,
-      :message    => "Please provide a name. Letters, spaces, dashes and apostrophes are allowed"
+      :message    => "Please provide a name. Letters, spaces, dashes and apostrophes are allowed."
 
 Run the Person model specs, and they'll be happier than Oprah on a baked ham:
   $ script/spec --format specdoc spec/models/person_spec.rb
   
   Person factory
-  - should build a valid Person
-  - should create a valid Person
+  <..snip..>
   
   Person attribute 'name' should be valid
   - if it is 4 characters
@@ -219,18 +217,18 @@ Run the Person model specs, and they'll be happier than Oprah on a baked ham:
   19 examples, 0 failures
 
 The Person model's 'name' attribute is pretty good now. So let's do the 'age' attribute next. It's going to be an optional attribute, with valid values between 0 and 120 inclusive. Add the valid and invalid values for the 'age' attribute to the test data section of spec/models/person_spec.rb :
-  valid_ages = [ # {{{
+  valid_ages = [
     'if it is 0',           0,
     'if it is 1',           1,
     'if it is 119',         119,
     'if it is 120',         120,
-    ] # }}}
-  invalid_ages = [ # {{{
+    ]
+  invalid_ages = [
     'if it is -2',          -2
     'if it is -1',          -1,
     'if it is 121',         121,
     'if it is 122',         122,
-    ] # }}}
+    ]
 
 Now let's tell ModelSpeccer to generate some specs for the 'age' attribute. Add this to the end of spec/models/person_spec.rb :
   ModelSpeccer.describe_model_attribute Person, :age, valid_ages, invalid_ages
@@ -248,8 +246,7 @@ With the validation in place, let's check our specs:
   $ script/spec --format specdoc spec/models/person_spec.rb
   
   Person factory
-  - should build a valid Person
-  - should create a valid Person
+  <..snip..>
   
   Person attribute 'name' should be valid
   <..snip..>
@@ -276,10 +273,10 @@ With the validation in place, let's check our specs:
 Huzzah!
 
 Now, there's one more method within the ModelSpeccer module that we haven't used yet. ModelSpeccer#check_model_attributes_when_nil is used for iterating through each attribute in a model to ensure that an instance of a model:
-*is valid when an optional attribute is nil,
-*is invalid when a required attribute is nil,
-*has an error message on certain attributes when those attributes are nil
-The first two points listed above are covered if you remember to put nil values in your 'invalid_*' test data arrays. However, I still use #check_model_attributes_when_nil , as it makes me feel good, knowing that each model attribute is being tested for nil values.
+* is valid when an optional attribute is nil,
+* is invalid when a required attribute is nil,
+* has an error message on certain attributes when those attributes are nil
+The first two points listed above are covered if you remember to put nil values in your 'invalid_*' test data arrays. However, I still use #check_model_attributes_when_nil , as it makes me feel good to know that each model attribute is being tested for nil values.
 
 So let's get on with this. It's easier than you think. Just add this to the end of your Person model spec, in spec/models/person_spec.rb :
   ModelSpeccer.check_model_attributes_when_nil Person, required_person_attributes, required_person_attributes
@@ -288,8 +285,7 @@ Give the ol' specs a kick, and watch the magic:
   $ script/spec --format specdoc spec/models/person_spec.rb
   
   Person factory
-  - should build a valid Person
-  - should create a valid Person
+  <..snip..>
   
   Person attribute 'name' should be valid
   <..snip..>
