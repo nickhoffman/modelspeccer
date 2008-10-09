@@ -30,7 +30,7 @@ module ModelSpeccer
     end
   end # }}}
   
-  # decribe_model_attribute(model, attribute, valid_vales = [], invalid_values = []) # {{{
+  # decribe_model_attribute(model, attribute, valid_values = [], invalid_values = []) # {{{
   #
   # Ensures that an instance of class 'model' with the specified attribute is:
   #   -Valid for each of the values in the 'valid_values' array.
