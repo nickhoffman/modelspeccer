@@ -1,0 +1,17 @@
+= Description
+
+ModelSpeccer is a module for generating RSpec specifications for Rails model attributes. It helps keep your specs DRYer and more focussed on testing valid and invalid values. See the examples below for more information, or read the code comments.
+
+= Dependencies
+
+ModelSpeccer requires that the following gems or Rails plugins are installed:
+* rspec (http://github.com/dchelimsky/rspec)
+* rspec-rails (http://github.com/dchelimsky/rspec-rails)
+* factories-and-workers (http://github.com/dfl/factories-and-workers)
+
+= Example Usage
+
+= Credits
+
+Written by Nick Hoffman (nick@deadorange.com).
+
