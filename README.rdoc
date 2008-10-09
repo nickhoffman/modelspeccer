@@ -5,11 +5,147 @@ ModelSpeccer is a module for generating RSpec specifications for Rails model att
 = Dependencies
 
 ModelSpeccer requires that the following gems or Rails plugins are installed:
-* rspec (http://github.com/dchelimsky/rspec)
-* rspec-rails (http://github.com/dchelimsky/rspec-rails)
-* factories-and-workers (http://github.com/dfl/factories-and-workers)
+  * rspec (http://github.com/dchelimsky/rspec)
+  * rspec-rails (http://github.com/dchelimsky/rspec-rails)
+  * factories-and-workers (http://github.com/dfl/factories-and-workers)
 
-= Example Usage
+A factory must be defined for each model that ModelSpeccer is going to be used on. Factories are defined in spec/factories.rb .
+
+= Usage
+
+== Quick
+
+If you just want to start using ModelSpeccer, read the comments above each of the methods in the module's source file. Each method is well-documented.
+
+The ModelSpeccer module has three methods:
+  * describe_model_factory(model)
+  * decribe_model_attribute(model, attribute, valid_vales = [], invalid_values = [])
+  * check_model_attributes_when_nil(model, required_attributes, attributes_with_error_messages = [])
+
+== Full Example
+
+We're going to step through the process of making a very basic Rails app, and use ModelSpeccer to generate specs for a model.
+
+Create a new Rails application:
+  $ rails model_speccer_test
+  $ cd model_speccer_test
+
+Install the necessary plugins:
+  $ script/plugin install git://github.com/dchelimsky/rspec.git
+  $ script/plugin install git://github.com/dchelimsky/rspec-rails.git
+  $ script/plugin install git://github.com/dfl/factories-and-workers.git
+  $ script/plugin install git://github.com/nickhoffman/modelspeccer.git
+
+Run the RSpec generator:
+  $ script/generate rspec
+
+Correct a bug in factories-and-workers. As of 2008-10-09, running ``rake spec'' will fail because factories-and-workers/rails/init.rb tries to access a non-existant "config" variable. One solution is to replace the following line in factories-and-workers/init.rb :
+  require File.dirname(__FILE__)+'/rails/init.rb' if RAILS_ENV=='test'
+with this:
+  if RAILS_ENV == 'test'
+  end
+and put the contents of factories-and-workers/rails/init.rb into the above if-statement. When completed, factories-and-workers/rails/init.rb should contain:
+  #require 'fileutils'
+  #
+  #config.after_initialize do
+  #  %w(spec/factories.rb spec/factory_workers.rb test/factories.rb test/factory_workers.rb).each do |file|
+  #    path = File.join(Dir.pwd, file)
+  #    require path if File.exists?(path)
+  #  end
+  #end
+and factories-and-workers/init.rb should contain:
+  require 'factories-and-workers'
+  
+  if RAILS_ENV == 'test'
+    require 'fileutils'
+    
+    config.after_initialize do
+      %w(spec/factories.rb spec/factory_workers.rb test/factories.rb test/factory_workers.rb).each do |file|
+        path = File.join(Dir.pwd, file)
+        require path if File.exists?(path)
+      end 
+    end 
+  end
+
+Configure RSpec to load the ModelSpeccer module for model specs. This is done by adding the following to the "Spec::Runner.configure" block in spec/spec_helper.rb :
+  config.include ModelSpeccer, :type => :model
+
+Create a User model:
+  $ script/generate rspec_model Person name:string age:integer
+  $ rake db:migrate
+
+Confirm that the auto-generated specs are successful:
+  $ rake spec
+
+We want to create a Person factory, so let's spec that out. Replace the contents of spec/models/person_spec.rb with:
+  require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+  
+  ModelSpeccer.describe_model_factory Person
+The code above tells ModelSpeccer to generate specs that check that factory methods exist for the Person class.
+
+Now run the Person model spec, and watch it fail:
+  $ script/spec --format specdoc spec/models/person_spec.rb
+Two errors are generated:
+  undefined method `build_person' for Object:Class
+  undefined method `create_person' for Object:Class
+
+Creating a Person factory will provide the Object class with those missing methods. The file spec/factories.rb should not exist yet. Create and add the following to it:
+  include FactoriesAndWorkers::Factory
+  
+  factory :person, {
+    :name   => 'Factory Person',
+    :age    => nil,
+    }
+
+Run the Person model spec again, and watch it pass:
+  $ script/spec --format specdoc spec/models/person_spec.rb
+
+Great! We're on the right track. Next, we want to add some validations to the Person model. The 'name' attribute should be required, and between 4 and 128 characters long. First, we spec it out. Add the following to spec/models/person_spec.rb , just above the call to ModelSpeccer#describe_model_factory :
+  # Test data {{{
+  required_person_attributes = %w(name)
+  
+  valid_names = [
+    'if it is 4 characters',            'Abcd',
+    'if it is 128 characters',          'Maximum lengthxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    ]
+  invalid_names = [
+    'if it is nil',                 nil,
+    "if it is ''",                  '',
+    ]
+  # End test data }}}
+The first "column" in the arrays above defines the RSpec behaviour that we expect. Essentially, what you would usually pass to #it when writing specs. The second "column" defines valid and invalid values for the 'name' attribute of the Person class.
+
+So, how do we use these valid and invalid values with the Person model? All you need to do is add this to the end of spec/models/person_spec.rb :
+  ModelSpeccer.describe_model_attribute Person, :name, valid_names, invalid_names
+
+Let's run the Person model spec again, and watch them fail:
+  $ script/spec --format specdoc spec/models/person_spec.rb
+As expected, that generated two errors; one for each pair of elements in the 'invalid_names' array. Make sure to read the spec doc that was spat out, to see the exact specs that ModelSpeccer is generating for you.
+
+Obviously, we want our specs to pass. So let's validate the Person model's 'name' attribute. Add this to app/models/person.rb :
+  validates_length_of :name,
+    :in           => 4..128,
+    :message      => "Please provide a name that's between 4 and 128 characters long.",
+    :allow_blank  => false
+
+Run the Person model spec yet again, and everything passes with flying colours:
+  $ script/spec --format specdoc spec/models/person_spec.rb
+
+  Person factory
+  - should build a valid Person
+  - should create a valid Person
+  
+  Person attribute 'name' should be valid
+  - if it is 4 characters
+  - if it is 128 characters
+  
+  Person attribute 'name' should be invalid
+  - if it is nil
+  - if it is ''
+  
+  Finished in 0.43423 seconds
+  
+  6 examples, 0 failures
 
 = Credits
 
