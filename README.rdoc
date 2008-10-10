@@ -1,6 +1,6 @@
 = Description
 
-ModelSpeccer is a module for generating RSpec specifications for Rails model attributes. It helps keep your specs DRYer and more focussed on testing valid and invalid values. See the examples below for more information, or read the code comments.
+ModelSpeccer is a module for generating RSpec specifications on-the-fly for Rails model attributes. It helps keep your specs DRYer and more focussed on speccing valid and invalid values. See the examples below for more information, or read the code comments.
 
 = Dependencies
 
@@ -22,7 +22,7 @@ The ModelSpeccer module has three methods:
   * decribe_model_attribute(model, attribute, valid_vales = [], invalid_values = [])
   * check_model_attributes_when_nil(model, required_attributes, attributes_with_error_messages = [])
 
-== Full Example
+== Long, Complete Example
 
 We're going to step through the process of making a very basic Rails app, and use ModelSpeccer to generate specs for a model.
 
