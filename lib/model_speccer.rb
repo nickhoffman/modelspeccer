@@ -125,7 +125,8 @@ module ModelSpeccer
     columns_to_check.each do |attribute|
       describe model, "with '#{attribute}' set to nil" do
         before(:each) do
-          @model_instance = Object.send "build_#{model.to_s.downcase}", {attribute => nil}
+          @model_instance = Object.send "build_#{model.to_s.downcase}"
+          @model_instance.send "#{attribute}=", nil
           @model_instance.save
         end
   
