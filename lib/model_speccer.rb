@@ -6,13 +6,14 @@ module ModelSpeccer
   #
   # Arguments:
   #   -The 'model' arg must be a model class.
+  #   -The 'check_saved_id' arg is optional. If specified, it must be a TrueClass or FalseClass. Setting it to false will disable calling #find to search for an instance of the model, which is desirable when the model is an ActiveRecord::BaseWithoutTable .
   #
   # An exception is raised if an argument is invalid.
   #
   # Example call:
   #   describe_model_factory User
   #
-  def self.describe_model_factory(model)
+  def self.describe_model_factory(model, check_saved_id = true)
     raise 'The 1st argument (model) must be a Model class' unless model.is_a? Class
   
     describe model, "factory" do
@@ -24,7 +25,11 @@ module ModelSpeccer
       it "should create a valid #{model}" do
         created_model = Object.send "create_#{model.to_s.downcase}"
         created_model.should be_valid
-        created_model.should == model.find(created_model.id)
+
+        if check_saved_id
+          created_model.should == model.find(created_model.id)
+        end
+
         created_model.destroy
       end
     end
