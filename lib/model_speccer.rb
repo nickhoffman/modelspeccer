@@ -18,12 +18,12 @@ module ModelSpeccer
   
     describe model, "factory" do
       it "should build a valid #{model}" do
-        built_model = Object.send "build_#{model.to_s.downcase}"
+        built_model = Object.send "build_#{model.to_s.underscore}"
         built_model.should be_valid
       end
   
       it "should create a valid #{model}" do
-        created_model = Object.send "create_#{model.to_s.downcase}"
+        created_model = Object.send "create_#{model.to_s.underscore}"
         created_model.should be_valid
 
         if check_saved_id
@@ -71,7 +71,7 @@ module ModelSpeccer
         # Ensure that each valid value produces a valid instance of 'model' and no error message.
         valid_values.in_groups_of(2) do |description, value|
           it description do
-            p = Object.send "build_#{model.to_s.downcase}", {attribute => value}
+            p = Object.send "build_#{model.to_s.underscore}", {attribute => value}
             p.save
             p.should be_valid
             p.should have(0).error_on(attribute)
@@ -86,7 +86,7 @@ module ModelSpeccer
         # Ensure that each invalid value produces an invalid model and related error message.
         invalid_values.in_groups_of(2) do |description, value|
           it description do
-            p = Object.send "build_#{model.to_s.downcase}", {attribute => value}
+            p = Object.send "build_#{model.to_s.underscore}", {attribute => value}
             p.save
             p.should_not be_valid
             p.should have_at_least(1).error_on(attribute)
@@ -130,7 +130,7 @@ module ModelSpeccer
     columns_to_check.each do |attribute|
       describe model, "with '#{attribute}' set to nil" do
         before(:each) do
-          @model_instance = Object.send "build_#{model.to_s.downcase}"
+          @model_instance = Object.send "build_#{model.to_s.underscore}"
           @model_instance.send "#{attribute}=", nil
           @model_instance.save
         end
