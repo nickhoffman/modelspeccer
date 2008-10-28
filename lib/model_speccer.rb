@@ -130,11 +130,7 @@ module ModelSpeccer
     columns_to_check.each do |attribute|
       describe model, "with '#{attribute}' set to nil" do
         before(:each) do
-<<<<<<< HEAD:lib/model_speccer.rb
           @model_instance = Object.send "build_#{model.to_s.underscore}"
-=======
-          @model_instance = Object.send "build_#{model.to_s.underscore}"
->>>>>>> 6c98bb3171e01ec0d1031913ddc53ad01a5e9d40:lib/model_speccer.rb
           @model_instance.send "#{attribute}=", nil
           @model_instance.save
         end
